@@ -78,6 +78,14 @@ public:
 			-sinTheta,	cosTheta };
 		return r;
 	}
+	static _Mat2 Rotation(b2Rot rot)
+	{
+		_Mat2 r = {
+			rot.c, rot.s,
+			-rot.s, rot.c
+		};
+		return r;
+	}
 	static _Mat2 Scaling( T factor )
 	{
 		_Mat2 s = { factor,(T)0.0,(T)0.0,factor };

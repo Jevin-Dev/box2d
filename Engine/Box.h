@@ -101,7 +101,7 @@ public:
 	{
 		pColorTrait = std::move( pct );
 	}
-	std::vector<std::unique_ptr<Box>> Box::Split( b2WorldId& world );
+	std::vector<std::unique_ptr<Box>> Box::Split( b2WorldId world );
 private:
 	static void Init()
 	{

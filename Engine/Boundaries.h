@@ -13,7 +13,7 @@
 class Boundaries
 {
 public:
-	Boundaries( b2World& world,float size )
+	Boundaries( b2WorldId world,float size )
 		:
 		size( size )
 	{
@@ -21,7 +21,8 @@ public:
 			b2BodyDef bodyDef;
 			bodyDef.type = b2_staticBody;
 			bodyDef.position = { 0.0f,0.0f };
-			pBody = BodyPtr::Make( world,bodyDef );
+			bodyDef.userData = this;
+			bodyId = b2CreateBody(world, &bodyDef);
 		}
 		{
 			const float extents = 0.99f * size;
@@ -31,16 +32,17 @@ public:
 				{  extents, extents },
 				{ -extents, extents }
 			};
-			b2ChainShape chain;
-			chain.CreateLoop( vertices,4 );
-			b2FixtureDef fixtureDef;
-			fixtureDef.shape = &chain;
-			fixtureDef.friction = 0.0f;
-			fixtureDef.density = 1.0f;
-			fixtureDef.restitution = 1.0f;
-			pBody->CreateFixture( &fixtureDef );
+			b2ChainDef chainDef = b2DefaultChainDef();
+			chainDef.isLoop = true;
+			chainDef.count = 4;
+			chainDef.points =  vertices;
+			chainDef.materialCount = 1;
+			b2SurfaceMaterial m = b2DefaultSurfaceMaterial();
+			m.friction = 0.0f;
+			m.restitution = 1.0f;
+			chainDef.materials = &m;
+			b2CreateChain(bodyId, &chainDef);
 		}
-		pBody->SetUserData( this );
 	}
 	float GetSize() const
 	{
@@ -48,5 +50,5 @@ public:
 	}
 private:
 	float size;
-	BodyPtr pBody;
+	b2BodyId bodyId;
 };

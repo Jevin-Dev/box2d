@@ -56,7 +56,7 @@ private:
 	std::mt19937 rng = std::mt19937( std::random_device{}() );
 	FrameTimer ft;
 	Pipeline<SolidEffect> pepe;
-	b2World world;
+	b2WorldId world;
 	Boundaries bounds = Boundaries( world,boundarySize );
 	std::vector<std::unique_ptr<Box>> boxPtrs;
 	std::vector<std::unique_ptr<Action>> actionPtrs;

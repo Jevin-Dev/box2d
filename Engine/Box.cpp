@@ -4,7 +4,7 @@
 IndexedTriangleList<Vec2> Box::model;
 
 
-std::unique_ptr<Box> Box::Spawn( float size,const Boundaries& bounds,b2World& world,std::mt19937& rng )
+std::unique_ptr<Box> Box::Spawn( float size,const Boundaries& bounds,b2WorldId world,std::mt19937& rng )
 {
 	std::uniform_real_distribution<float> pos_dist(
 		-bounds.GetSize() + size * 2.0f,
@@ -42,11 +42,11 @@ std::unique_ptr<Box> Box::Spawn( float size,const Boundaries& bounds,b2World& wo
 	return std::make_unique<Box>( std::move( pColorTrait ),world,pos,size,ang,linVel,angVel );
 }
 
-std::vector<std::unique_ptr<Box>> Box::Split( b2World& world )
+std::vector<std::unique_ptr<Box>> Box::Split( b2WorldId world )
 {
 	std::vector<std::unique_ptr<Box>> boxes;
 	const Vec2 pos = GetPosition();
-	const float angle = GetAngle();
+	const b2Rot angle = GetAngle();
 	const Vec2 vel = GetVelocity();
 	const float angVel = GetAngularVelocity();
 	// base for rotation to calculate centers of children relative to parent center
