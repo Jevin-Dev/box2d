@@ -24,7 +24,7 @@
 #include <memory>
 #include <vector>
 #include "FrameTimer.h"
-#include <Box2D\Box2D.h>
+#include <box2d/box2d.h>
 #include "Box.h"
 #include "Boundaries.h"
 #include "Pipeline.h"

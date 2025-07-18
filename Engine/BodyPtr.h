@@ -1,22 +1,22 @@
 #pragma once
-#include <Box2D\Box2D.h>
+#include <box2d/box2d.h>
 #include <functional>
 #include <memory>
 
-class BodyPtr : public std::unique_ptr<b2Body,std::function<void(b2Body*)>>
+class BodyPtr : public std::unique_ptr<b2BodyId,std::function<void(b2BodyId)>>
 {
 public:
-	static BodyPtr Make( b2World& world,const b2BodyDef& bodyDef )
+	static BodyPtr Make( b2WorldId world,const b2BodyDef& bodyDef )
 	{
 		return { 
-			world.CreateBody( &bodyDef ),
-			[&world]( b2Body* pBody ) 
-			{ world.DestroyBody( pBody );}
+			&b2CreateBody(world, &bodyDef),
+			[]( b2BodyId body ) 
+			{ b2DestroyBody(body); }
 		};
 	}
 	BodyPtr() = default;
 private:
-	BodyPtr( b2Body* p,std::function<void(b2Body*)> f )
+	BodyPtr( b2BodyId* p,std::function<void(b2BodyId)> f )
 		:
 		unique_ptr( p,f )
 	{}

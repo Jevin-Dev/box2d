@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Box2D\Box2D.h>
+#include <box2d/box2d.h>
 #include "IndexedTriangleList.h"
 #include "Vec2.h"
 #include "Vec3.h"
@@ -23,9 +23,9 @@ public:
 		virtual std::unique_ptr<ColorTrait> Clone() const = 0;
 	};
 public:
-	static std::unique_ptr<Box> Box::Spawn( float size,const Boundaries& bounds,b2World& world,std::mt19937& rng );
-	Box( std::unique_ptr<ColorTrait> pColorTrait, b2World& world,const Vec2& pos,
-		float size = 1.0f,float angle = 0.0f,Vec2 linVel = {0.0f,0.0f},float angVel = 0.0f )
+	static std::unique_ptr<Box> Box::Spawn( float size,const Boundaries& bounds,b2WorldId world,std::mt19937& rng );
+	Box( std::unique_ptr<ColorTrait> pColorTrait, b2WorldId world,const Vec2& pos,
+		float size = 1.0f,b2Rot angle = b2MakeRot(0.0f),Vec2 linVel = {0.0f,0.0f},float angVel = 0.0f )
 		:
 		pColorTrait( std::move( pColorTrait ) ),
 		size( size )
@@ -37,20 +37,18 @@ public:
 			bodyDef.position = b2Vec2( pos );
 			bodyDef.linearVelocity = b2Vec2( linVel );
 			bodyDef.angularVelocity = angVel;
-			bodyDef.angle = angle;
-			pBody = BodyPtr::Make( world,bodyDef );
+			bodyDef.rotation = angle;
+			bodyDef.userData = this;
+			bodyId = b2CreateBody( world, &bodyDef );
 		}
 		{
-			b2PolygonShape dynamicBox;
-			dynamicBox.SetAsBox( size,size );
-			b2FixtureDef fixtureDef;
-			fixtureDef.shape = &dynamicBox;
-			fixtureDef.density = 1.0f;
-			fixtureDef.friction = 0.0f;
-			fixtureDef.restitution = 1.0f;
-			pBody->CreateFixture( &fixtureDef );
+			b2Polygon dynamicBox = b2MakeBox(size, size);
+			b2ShapeDef shapeDef = b2DefaultShapeDef();
+			shapeDef.density = 1.0f;
+			shapeDef.material.friction = 0.0f;
+			shapeDef.material.restitution = 1.0f;
+			b2CreatePolygonShape(bodyId, &shapeDef, &dynamicBox);
 		}
-		pBody->SetUserData( this );
 	}
 	void Draw( Pipeline<SolidEffect>& pepe ) const
 	{
@@ -61,27 +59,27 @@ public:
 	}
 	void ApplyLinearImpulse( const Vec2& impulse )
 	{
-		pBody->ApplyLinearImpulse( (b2Vec2)impulse,(b2Vec2)GetPosition(),true );
+		b2Body_ApplyLinearImpulse( bodyId, (b2Vec2)impulse,(b2Vec2)GetPosition(),true );
 	}
 	void ApplyAngularImpulse( float impulse )
 	{
-		pBody->ApplyAngularImpulse( impulse,true );
+		b2Body_ApplyAngularImpulse( bodyId, impulse,true );
 	}
-	float GetAngle() const
+	b2Rot GetAngle() const
 	{
-		return pBody->GetAngle();
+		return b2Body_GetRotation(bodyId);
 	}
 	Vec2 GetPosition() const
 	{
-		return (Vec2)pBody->GetPosition();
+		return (Vec2)b2Body_GetPosition(bodyId);
 	}
 	float GetAngularVelocity() const
 	{
-		return pBody->GetAngularVelocity();
+		return b2Body_GetAngularVelocity(bodyId);
 	}
 	Vec2 GetVelocity() const
 	{
-		return (Vec2)pBody->GetLinearVelocity();
+		return (Vec2)b2Body_GetLinearVelocity(bodyId);
 	}
 	float GetSize() const
 	{
@@ -103,7 +101,7 @@ public:
 	{
 		pColorTrait = std::move( pct );
 	}
-	std::vector<std::unique_ptr<Box>> Box::Split( b2World& world );
+	std::vector<std::unique_ptr<Box>> Box::Split( b2WorldId& world );
 private:
 	static void Init()
 	{
@@ -116,7 +114,7 @@ private:
 private:
 	static IndexedTriangleList<Vec2> model;
 	float size;
-	BodyPtr pBody;
+	b2BodyId bodyId;
 	std::unique_ptr<ColorTrait> pColorTrait;
 	bool isDying = false;
 };
